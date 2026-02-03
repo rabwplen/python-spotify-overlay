@@ -1,39 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>Spotify Auth</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Auth Successful</title>
     <style>
         body {
             background-color: #121212;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
+            color: white;
+            font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            flex-direction: column;
+            margin: 0;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
         }
         h1 {
-            font-size: 26px;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #1DB954; /* Spotify Green */
         }
         p {
-            font-size: 14px;
-            color: #aaa;
-            margin-top: 10px;
+            color: #b3b3b3;
+            font-size: 1.2rem;
+        }
+        .circle {
+            width: 80px;
+            height: 80px;
+            background-color: #1DB954;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
+        }
+        svg {
+            fill: white;
+            width: 40px;
+            height: 40px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
     <script>
         setTimeout(() => {
             window.close();
-        }, 5000);
+        }, 3000);
     </script>
 </head>
-
 <body>
-    <h1>✅ You are logged in!</h1>
-    <p>This tab will close automatically in a moment...</p>
+    <div class="container">
+        <div class="circle">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        </div>
+        <h1>You are logged in!</h1>
+        <p>Now you can go back to the app.</p>
+        <p style="font-size: 0.9rem; margin-top: 30px; opacity: 0.6;">Closing automatically...</p>
+    </div>
 </body>
-
 </html>
