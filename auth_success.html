@@ -6,49 +6,64 @@
     <title>Spotify Auth Successful</title>
     <style>
         body {
-            background-color: #121212;
+            background: linear-gradient(to top, #111111, #242424);
             color: white;
             font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
         }
         .container {
             text-align: center;
             animation: fadeIn 0.8s ease-out;
         }
         h1 {
-            font-size: 3rem;
+            font-size: 2rem;
             margin-bottom: 10px;
-            color: #1DB954; /* Spotify Green */
+            color: #1DB954;
         }
         p {
             color: #b3b3b3;
-            font-size: 1.2rem;
+            font-size: 1rem;
+            margin-bottom: 20px;
         }
         .circle {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             background-color: #1DB954;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             margin: 0 auto 20px auto;
-            box-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
         }
         svg {
             fill: white;
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
+            animation: checkRotate 0.5s ease-out;
+        }
+        button {
+            background-color: #12a044;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button:hover {
+            background-color: #1DB954;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes checkRotate {
+            from { transform: rotate(-45deg); opacity: 0; }
+            to { transform: rotate(0deg); opacity: 1; }
         }
     </style>
     <script>
@@ -63,8 +78,8 @@
             <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
         </div>
         <h1>You are logged in!</h1>
-        <p>Now you can go back to the app.</p>
-        <p style="font-size: 0.9rem; margin-top: 30px; opacity: 0.6;">Closing automatically...</p>
+        <p>You can now safely close this tab and return to the app. Window will close automatically...</p>
+        <button onclick="window.close()">Close Now</button>
     </div>
 </body>
 </html>
