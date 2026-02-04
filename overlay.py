@@ -38,12 +38,12 @@ def quit_app(app):
 
     # saving app window position
     geo = app.geometry()
-    if "+" in geo:  # format type: '350x100+30+30'
+    if "+" in geo:
         parts = geo.split("+")
-        app_position_X = int(parts[1])
-        app_position_Y = int(parts[2])
+        app.app_position_X = int(parts[1])
+        app.app_position_Y = int(parts[2])
     else:
-        app_position_X = app_position_Y = 30  # default
+        app.app_position_X = app.app_position_Y = 42  # default
 
     save_settings({  # saves all settings and some data
         "default_opacity": app.default_opacity,
@@ -53,8 +53,8 @@ def quit_app(app):
         "always_on_top": app.always_on_top,
         "can_drag": app.can_drag,
         "click_through": app.click_through,
-        "window_position_x": app_position_X,
-        "window_position_y": app_position_Y
+        "window_position_x": app.app_position_X,
+        "window_position_y": app.app_position_Y
     })
 
     app.destroy()
@@ -135,13 +135,27 @@ tray_icon = None
 
 
 
-
-
-
 # !--- Main Overlay Class ---!
 
 # UIs basic colors for Overlay
 COLOR_BACKGROUND = "#000000"
+COLOR_MAIN_TEXT = "#FFFFFF"
+COLOR_SECONDARY_TEXT = "#BEBEBE"
+COLOR_MUTED_TEXT = "#6E6E6E"
+
+# UIs Positions
+POS_BACKGROUND = {'relx': 0, 'rely': .5, 'x': 26, 'y': 0, 'relheight': 1, "anchor": "w"}
+POS_CLOSE_BUTTON = {'relx': 0, 'rely': 0, 'x': 2, 'y': 2, "anchor": "nw"}
+POS_SETTINGS_BUTTON = {'relx': 0, 'rely': 0.5, 'x': 2, 'y': 0, "anchor": "w"}
+POS_DRAG_BUTTON = {'relx': 0, 'rely': 1, 'x': 2, 'y': -2, "anchor": "sw"}
+POS_TRACK_TITLE = {'relx': 0, 'rely': 0, 'x': 80, 'y': 3, "anchor": "nw"}
+POS_TRACK_ARTIST = {'relx': 0, 'rely': 0, 'x': 80, 'y': 25, "anchor": "nw"}
+POS_TRACK_IMAGE = {'relx': 0, 'rely': 0.5, 'x': 5, 'y': 0, "anchor": "w"}
+POS_TRACK_DURATION = {'relx': 0, 'rely': 1, 'x': 80, 'y': -1, "anchor": "sw"}
+POS_TRACK_DURATION_SLIDER = {'rely': 0.8, 'relx': 0.75, 'anchor': "ne"}
+POS_PREV_TRACK_BUTTON = {'relx': 0, 'rely': .5, 'x': 0, 'y': 0, "anchor": "w"}
+POS_PAUSE_TRACK_BUTTON = {'relx': .5, 'rely': .5, 'x': 0, 'y': 0, "anchor": "center"}
+POS_NEXT_TRACK_BUTTON = {'relx': 1, 'rely': .5, 'x': 0, 'y': 0, "anchor": "e"}
 
 # The Overlay
 class Overlay(ctk.CTk):
@@ -173,8 +187,8 @@ class Overlay(ctk.CTk):
         self.always_on_top = self.settings.get("always_on_top", True)
         self.can_drag = self.settings.get("can_drag", True)
         self.click_through = self.settings.get("click_through", False)
-        app_position_X = self.settings.get("window_position_x", 30)
-        app_position_Y = self.settings.get("window_position_y", 30)
+        self.app_position_X = self.settings.get("window_position_x", 42)
+        self.app_position_Y = self.settings.get("window_position_y", 42)
         save_settings({
             "default_opacity": self.default_opacity,
             "hover_opacity": self.hover_opacity,
@@ -187,7 +201,7 @@ class Overlay(ctk.CTk):
 
         # Other Variables
         self.title("Spotify Overlay")
-        self.geometry(f"350x80+{app_position_X}+{app_position_Y}")
+        self.geometry(f"350x80+{self.app_position_X}+{self.app_position_Y}")
         self.overrideredirect(True)
         # self.resizable(True, True) # useless
         self.attributes("-topmost", self.always_on_top)
@@ -230,7 +244,7 @@ class Overlay(ctk.CTk):
         def on_slider_change(value):
             new_position_ms = int((value / 100) * self.track_total_duration)
 
-            self.spotify_track_duration.configure(text=f"{self.format_time(new_position_ms)} / {self.format_time(self.track_total_duration)}")
+            self.track_duration.configure(text=f"{self.format_time(new_position_ms)} / {self.format_time(self.track_total_duration)}")
 
             try:
                 self.sp.seek_track(new_position_ms)
@@ -241,27 +255,18 @@ class Overlay(ctk.CTk):
                     print("Another error when rewinding:", e)
 
         # ! --- UIs --- !
-        
-        # UIs Positions
-        self.POS_close_button = {'relx': 0, 'rely': 0, 'x': 2, 'y': 2, "anchor": "nw"}
-        self.POS_drag_button = {'relx': 0, 'rely': 1, 'x': 2, 'y': -2, "anchor": "sw"}
-        self.POS_settings_button = {'relx': 0, 'rely': 0.5, 'x': 2, 'y': 0, "anchor": "w"}
-        self.POS_spotify_title = {'relx': 0, 'rely': 0, 'x': 80, 'y': 3, "anchor": "nw"}
-        self.POS_spotify_artist = {'relx': 0, 'rely': 0, 'x': 80, 'y': 25, "anchor": "nw"}
-        self.POS_spotify_image = {'relx': 0, 'rely': 0.5, 'x': 5, 'y': 0, "anchor": "w"}
-        self.POS_spotify_track_duration = {'relx': 0, 'rely': 1, 'x': 80, 'y': -2, "anchor": "sw"}
-        self.POS_spotify_track_duration_slider = {'rely': 0.8, 'relx': 0.75, 'anchor': "ne"}
-        self.POS_spotify_prev_track_button = {'relx': 1, 'rely': 1, 'x': -62, 'y': -2, "anchor": "se"}
-        self.POS_spotify_pause_track_button = {'relx': 1, 'rely': 1, 'x': -32, 'y': -2, "anchor": "se"}
-        self.POS_spotify_next_track_button = {'relx': 1, 'rely': 1, 'x': -2, 'y': -2, "anchor": "se"}
 
         # background for all window
-        self.main_background = ctk.CTkFrame(self, fg_color=COLOR_BACKGROUND)
+        self.main_background = ctk.CTkFrame(self, fg_color=COLOR_BACKGROUND, bg_color="transparent")
         self.main_background.place(relx=0, rely=0, relwidth=1, relheight=1)
         
         # track info frame
         self.background = ctk.CTkFrame(self, fg_color=COLOR_BACKGROUND, bg_color=COLOR_BACKGROUND, width=(self.winfo_width()-(26+4))) # or 26*2 for future
-        self.background.place(relx=0, rely=.5, x=26, relheight=1, anchor="w")
+        self.background.place(**POS_BACKGROUND)
+        
+        # frame for track buttons
+        self.buttons_frame = ctk.CTkFrame(self, fg_color=COLOR_BACKGROUND, bg_color=COLOR_BACKGROUND, width=85, height=25) # or 26*2 for future
+        self.buttons_frame.place(x=-2, y=-2, relx=1, rely=1, anchor="se")
 
         # Control Panel For 3-rd size mode
         self.control_frame = ctk.CTkFrame(self.background, fg_color="#000000")
@@ -273,7 +278,7 @@ class Overlay(ctk.CTk):
                                        width=22, height=22, corner_radius=0, image=self.close_icon,
                                        fg_color=COLOR_BACKGROUND, hover_color="#1A1A1A",
                                        command=lambda: quit_app(self))
-        self.close_button.place(**self.POS_close_button)
+        self.close_button.place(**POS_CLOSE_BUTTON)
         
         # drag button
         self.drag_icon = ctk.CTkImage(light_image=Image.open(file_path('assets/drag-icon.png')), size=(10, 10))
@@ -281,7 +286,7 @@ class Overlay(ctk.CTk):
         self.drag_button = ctk.CTkButton(self.main_background, text="",
                                         width=22, height=22, corner_radius=0, image=self.drag_icon,
                                         fg_color=COLOR_BACKGROUND, hover_color=COLOR_BACKGROUND)
-        self.drag_button.place(**self.POS_drag_button)
+        self.drag_button.place(**POS_DRAG_BUTTON)
         self.drag_button.bind("<Button-1>", self.start_move)
         self.drag_button.bind("<B1-Motion>", self.on_motion)
 
@@ -292,65 +297,65 @@ class Overlay(ctk.CTk):
                                         width=22, height=22, corner_radius=0, image=self.settings_icon,
                                         fg_color=COLOR_BACKGROUND, hover_color="#1A1A1A",
                                         command=self.open_settings)
-        self.settings_button.place(**self.POS_settings_button)
+        self.settings_button.place(**POS_SETTINGS_BUTTON)
 
         # track title
-        self.spotify_title = ctk.CTkLabel(self.background, text="", font=ctk.CTkFont(size=18, weight="bold", family="Arial"),
-                                         text_color="#FFFFFF")
-        self.spotify_title.place(**self.POS_spotify_title)
+        self.track_title = ctk.CTkLabel(self.background, text="", font=ctk.CTkFont(size=18, weight="bold", family="Arial"),
+                                         text_color=COLOR_MAIN_TEXT)
+        self.track_title.place(**POS_TRACK_TITLE)
 
         # track artist
-        self.spotify_artist = ctk.CTkLabel(self.background, text="", font=ctk.CTkFont(size=14, family="Arial"),
-                                         text_color="#BEBEBE")
-        self.spotify_artist.place(**self.POS_spotify_artist)
+        self.track_artist = ctk.CTkLabel(self.background, text="", font=ctk.CTkFont(size=14, family="Arial"),
+                                         text_color=COLOR_SECONDARY_TEXT)
+        self.track_artist.place(**POS_TRACK_ARTIST)
 
         # track image
-        self.spotify_image = ctk.CTkLabel(self.background, text="")
-        self.spotify_image.place(**self.POS_spotify_image)
+        self.track_image = ctk.CTkLabel(self.background, text="")
+        self.track_image.place(**POS_TRACK_IMAGE)
 
         # track duration
-        self.spotify_track_duration = ctk.CTkLabel(self.background, text="0:00 / 0:00", font=ctk.CTkFont(size=11, family="Arial"),
-                                                   text_color="#BEBEBE")
-        self.spotify_track_duration.place(**self.POS_spotify_track_duration)
+        self.track_duration = ctk.CTkLabel(self.background, text="", font=ctk.CTkFont(size=11, family="Arial"), 
+                                                   text_color=COLOR_SECONDARY_TEXT)
+        self.track_duration.place(**POS_TRACK_DURATION) # text="0:00 / 0:00"
 
-        self.spotify_track_duration_progress = ctk.CTkLabel(self.background, text="0:00", font=ctk.CTkFont(size=13, family="Comic Sans"), text_color="light gray", height=12, fg_color="#000000")
-        self.spotify_track_duration_total = ctk.CTkLabel(self.background, text="0:00", font=ctk.CTkFont(size=13, family="Comic Sans"), text_color="light gray", height=12, fg_color="#000000")
+        # self.track_duration_progress = ctk.CTkLabel(self.background, text="0:00", font=ctk.CTkFont(size=13, family="Comic Sans"), text_color="light gray", height=12, fg_color="#000000")
+        # self.track_duration_total = ctk.CTkLabel(self.background, text="0:00", font=ctk.CTkFont(size=13, family="Comic Sans"), text_color="light gray", height=12, fg_color="#000000")
 
-        self.spotify_track_duration_slider = ctk.CTkSlider(self.background, from_=0, to=100, state="disabled", command=on_slider_change,
+        self.track_duration_slider = ctk.CTkSlider(self.background, from_=0, to=100, state="disabled", command=on_slider_change,
                                                            width=110, height=10,
                                                            bg_color=COLOR_BACKGROUND, fg_color="#303030", progress_color="#FFFFFF",
                                                            button_color="#FFFFFF", button_hover_color="#FF0000")
-        # self.spotify_track_duration_slider.place(**self.POS_spotify_track_duration_slider)
+        # self.track_duration_slider.place(**self.POS_track_duration_slider)
 
         # previous Track
         def previous_track():
             keyboard.send("previous track")
 
-        self.spotify_prev_track_button = ctk.CTkButton(self.background, text="|◀", font=ctk.CTkFont(size=12),
+        self.prev_track_button = ctk.CTkButton(self.buttons_frame, text="|◀", font=ctk.CTkFont(size=12),
                                                             width=25, height=25, corner_radius=5,
                                                             fg_color="#202020", hover_color="#3D3D3D", text_color="white",
                                                             command=previous_track)
-        self.spotify_prev_track_button.place(**self.POS_spotify_prev_track_button)
+        self.prev_track_button.place(**POS_PREV_TRACK_BUTTON)
 
         # resume/pause Track
         def resume_pause_track():
             keyboard.send("play/pause")
 
-        self.spotify_pause_track_button = ctk.CTkButton(self.background, text="▶", font=ctk.CTkFont(size=13, weight="bold"),
+        self.pause_track_button = ctk.CTkButton(self.buttons_frame, text="▶", font=ctk.CTkFont(size=13, weight="bold"),
                                                             width=25, height=25, corner_radius=5,
                                                             fg_color="#FFF", hover_color="light gray", text_color="#202020",
                                                             command=resume_pause_track)
-        self.spotify_pause_track_button.place(**self.POS_spotify_pause_track_button)
+        self.pause_track_button.place(**POS_PAUSE_TRACK_BUTTON)
 
         # next Track
         def next_track():
             keyboard.send("next track")
 
-        self.spotify_next_track_button = ctk.CTkButton(self.background, text="▶|", font=ctk.CTkFont(size=12),
+        self.next_track_button = ctk.CTkButton(self.buttons_frame, text="▶|", font=ctk.CTkFont(size=12),
                                                             width=25, height=25, corner_radius=5,
                                                             fg_color="#202020", hover_color="#3D3D3D", text_color="white",
                                                             command=next_track)
-        self.spotify_next_track_button.place(**self.POS_spotify_next_track_button)
+        self.next_track_button.place(**POS_NEXT_TRACK_BUTTON)
 
         # other
         self.monitor_mouse()
@@ -401,11 +406,8 @@ class Overlay(ctk.CTk):
         if current and current["is_playing"]:
             track = current['item']
             title = track['name']
-            middleTitle = textwrap.shorten(title, width=35, placeholder="...")
-            shortTitle = textwrap.shorten(title, width=32, placeholder="...")
-            shortestTitle = textwrap.shorten(title, width=30, placeholder="...")
+            shorterTitle = textwrap.shorten(title, width=26, placeholder="-")
             artist = track['artists'][0]['name']
-            album = track['album'].get('name')
             track_duration = "0:00 / 0:00"
             images = track['album'].get('images', [])
             image_url = images[0]['url'] if images else None
@@ -415,39 +417,39 @@ class Overlay(ctk.CTk):
             track_duration = f"{self.format_time(progress_ms)} / {self.format_time(duration_ms)}"
 
             # updates all label
-            middle_spotify_title_new = f"{middleTitle}"
-            if self.spotify_title.cget("text") != middle_spotify_title_new:
-                print("Update < spotify_title > to < middleTitle >")
-                self.spotify_title.configure(text=middle_spotify_title_new)
+            title_new = f"{shorterTitle}"
+            if self.track_title.cget("text") != title_new:
+                print("Update < track_title > to < shorterTitle >")
+                self.track_title.configure(text=title_new)
 
-            spotify_artist_new = f"{artist}"
-            if self.spotify_artist.cget("text") != spotify_artist_new:
-                print("Update < spotify_artist > to < artist >")
-                self.spotify_artist.configure(text=spotify_artist_new)
+            artist_new = f"{artist}"
+            if self.track_artist.cget("text") != artist_new:
+                print("Update < track_artist > to < artist >")
+                self.track_artist.configure(text=artist_new)
 
-            if self.spotify_image.place_info() == {}:
+            if self.track_image.place_info() == {}:
                 print("cho")
-                self.spotify_image.place(**self.POS_spotify_image)
+                self.track_image.place(**POS_TRACK_IMAGE)
 
-            self.spotify_track_duration.configure(text=track_duration)
+            self.track_duration.configure(text=track_duration)
 
-            if self.spotify_pause_track_button.cget("text") != "||":
-                print("Update < spotify_pause_track_button > to '||'")
-                self.spotify_pause_track_button.configure(text="||", font=ctk.CTkFont(size=11, weight="bold"))
+            if self.pause_track_button.cget("text") != "||":
+                print("Update < pause_track_button > to '||'")
+                self.pause_track_button.configure(text="||", font=ctk.CTkFont(size=11, weight="bold"))
 
 
             # update slider
             if duration_ms > 0:
                 slider_value = (progress_ms / duration_ms) * 100
-                self.spotify_track_duration_slider.set(slider_value)
+                self.track_duration_slider.set(slider_value)
 
             # get image
             def update_album_cover(image_url):
                 if not image_url:
-                    if self.spotify_image.cget("image") is not self.default_album_cover and self.spotify_image.cget("image") is not self.default_album_cover_gradient or self.current_image_url == "idk123":
-                        print("Update < spotify_image > to default album cover < self.default_album_cover >")
-                        self.spotify_image.configure(image=self.default_album_cover)
-                        self.spotify_image.image = self.default_album_cover
+                    if self.track_image.cget("image") is not self.default_album_cover and self.track_image.cget("image") is not self.default_album_cover_gradient or self.current_image_url == "idk123":
+                        print("Update < track_image > to default album cover < self.default_album_cover >")
+                        self.track_image.configure(image=self.default_album_cover)
+                        self.track_image.image = self.default_album_cover
                         self.current_image_url = None
                     return
 
@@ -455,7 +457,7 @@ class Overlay(ctk.CTk):
                     return  # same image, do nothing
 
                 if image_url != self.current_image_url:
-                    print("Update < spotify_image > to < image_url >")
+                    print("Update < track_image > to < image_url >")
 
                     self.current_image_url = image_url
 
@@ -469,26 +471,29 @@ class Overlay(ctk.CTk):
                     image_data.putalpha(mask)
 
                     final_image = ctk.CTkImage(light_image=image_data, size=(70, 70))
-                    self.spotify_image.configure(image=final_image)
-                    self.spotify_image.image = final_image
+                    self.track_image.configure(image=final_image)
+                    self.track_image.image = final_image
 
             update_album_cover(image_url)
 
-        # else:  # if nothing is playing right now
-        #     if self.title_label.cget("text") != "Paused." or self.spotify_pause_track_button.cget("text") != "▶":
-        #         print("Update all ui elements to < 'non playing' >")
-        #         self.title_label.configure(text="Paused.")
-        #         self.spotify_pause_track_button.configure(text="▶", font=ctk.CTkFont(size=10))
+        else:  # if nothing is playing right now
+            if self.pause_track_button.cget("text") != "▶":
+                print("Update < pause_track_button > to '▶'")
+                self.pause_track_button.configure(text="▶", font=ctk.CTkFont(size=13))
 
     def settings_toggle_click_through(self):
         if self.click_through:
             self.close_button.place_forget()
             self.settings_button.place_forget()
             self.drag_button.place_forget()
+            self.background.configure(bg_color="transparent")
+            self.background.place_configure(relx=0, rely=.5, x=2, relheight=1, anchor="w")
         else:
-            self.close_button.place(**self.POS_close_button)
-            self.settings_button.place(**self.POS_settings_button)
-            self.drag_button.place(**self.POS_drag_button)
+            self.close_button.place(**POS_CLOSE_BUTTON)
+            self.settings_button.place(**POS_SETTINGS_BUTTON)
+            self.drag_button.place(**POS_DRAG_BUTTON)
+            self.background.configure(bg_color=COLOR_BACKGROUND)
+            self.background.place_configure(**POS_BACKGROUND)
 
     def create_tray(self):
         create_tray(self) # very important for tray (used in main.py)

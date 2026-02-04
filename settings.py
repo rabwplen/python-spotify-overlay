@@ -1,6 +1,8 @@
+import os
+
 import customtkinter as ctk
 
-from utils import save_settings
+from utils import save_settings, get_data_dir
 
 class SettingsWindow(ctk.CTkToplevel):
     def __init__(self, overlay):
@@ -78,7 +80,7 @@ class SettingsWindow(ctk.CTkToplevel):
         fadeDuration_label = ctk.CTkLabel(self, text=f"Fade duration: {self.overlay.fade_duration:.1f}")
         fadeDuration_label.place(y=100, x=8)
 
-        fadeDuration_slider = ctk.CTkSlider(self, from_=0.1, to=5, number_of_steps=49, width=130)
+        fadeDuration_slider = ctk.CTkSlider(self, from_=0.1, to=2.5, number_of_steps=24, width=130)
         fadeDuration_slider.set(self.overlay.fade_duration)
         fadeDuration_slider.place(y=100+4.5, x=-15, relx=1, anchor="ne")
 
@@ -127,3 +129,17 @@ class SettingsWindow(ctk.CTkToplevel):
         click_through_switch = ctk.CTkSwitch(self, text="Click-Through", command=lambda: toggle_click_through(click_through_switch.get()))
         if self.overlay.click_through: click_through_switch.select()
         click_through_switch.place(y=190, x=8)
+        
+        def open_config_folder():
+            path = get_data_dir()
+            print(f"open: {path}")
+
+            if os.name == "nt":  # windows
+                os.startfile(path)
+            elif sys.platform == "darwin":  # macOS
+                subprocess.run(["open", path])
+            else:  # linux
+                subprocess.run(["xdg-open", path])
+            
+        click_through_switch = ctk.CTkButton(self, text="Open config.json folder", command=open_config_folder)
+        click_through_switch.place(y=220, x=8)
