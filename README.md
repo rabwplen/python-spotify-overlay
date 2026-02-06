@@ -1,6 +1,6 @@
 # Python Spotify Overlay
 
-A simple, customizable overlay for Spotify that shows the currently playing track, artist, album art and playback controls on top of your screen.
+A lightweight, customizable Spotify overlay that displays the current track, artist, album artwork and playback controls on top of your screen.
 
 
 ## Features
@@ -25,41 +25,26 @@ pip install spotipy customtkinter pystray pillow requests keyboard
 1. Clone or download the project
 2. Install dependencies (see above)
 3. Make sure the project structure looks like this:
-    - assets/
-    - main.py
-    - overlay.py
-    - settings.py
-    - spotify.py
-    - utils.py
-4. Make sure the `assets/` folder contains:
-    - `app-icon.ico` / `app-icon.png`
-    - `close-icon.png`, `drag-icon.png`, `settings-icon.png`
-    - `album-cover.jpeg` (default cover)
-
-
-## Getting Started (Setup & Usage)
-
-### 1. Spotify API Setup (Required)
-
-This app uses the Spotify Web API, so you need your own **Client ID** and **Redirect URI**.
-
-1. Go to https://developer.spotify.com/dashboard  
-2. Log in → Create an app (any name/description is fine)  
-3. In the app settings:
-   - Copy your **Client ID**
-   - Add Redirect URI: `http://127.0.0.1:8888/callback` (already used in the code)
-4. Open `spotify.py` and replace the placeholders:
-
-```python
-CLIENT_ID = "PASTE_YOUR_CLIENT_ID"
-REDIRECT_URI = "http://127.0.0.1:8888/callback"   # leave this as is
-SCOPE = "user-read-private user-read-playback-state"
+```text
+python-spotify-overlay/
+├─ assets/
+│  ├─ album-cover.png
+│  ├─ app-icon.ico
+│  ├─ app-icon.png
+│  ├─ close-icon.png
+│  ├─ drag-icon.png
+│  └─ settings-icon.png
+├─ auth_success.html
+├─ main.py
+├─ overlay.py
+├─ settings.py
+├─ spotify.py
+└─ utils.py
 ```
 
-5. Save the file.
 
+## Quick Start
 
-### 2. Run the App
 ```bash
 python main.py
 ```
@@ -86,12 +71,59 @@ That’s it. After the first authorization, the app will reuse the cached token 
 Delete these files to reset to defaults.
 
 
+## Spotify API Setup (for forks & custom builds)
+
+This project includes the author's Spotify **Client ID** by default, so you can run the overlay out of the box.
+If you plan to use this repository as a base for your own project or distribute modified builds, you should register your own Spotify application and provide your own credentials.
+
+### Quick start (use as-is)
+
+1. Clone the repository.
+2. Run the app.
+
+```bash
+python main.py
+```
+
+3. On the first launch, your browser will open to authorize access to Spotify.
+
+No additional setup is required if you only want to try the overlay.
+
+### Custom setup (recommended for developers)
+
+If you are building your own version of this project, follow these steps:
+
+1. Go to https://developer.spotify.com/dashboard.
+2. Log in and click Create an app.
+3. Open your app settings:
+    - Copy your Client ID
+    - Add a Redirect URI (for example): `http://127.0.0.1:8888/callback`
+4. Open `spotify.py` and replace the values:
+
+```python
+CLIENT_ID = "YOUR_CLIENT_ID_HERE"
+REDIRECT_URI = "http://127.0.0.1:8888/callback"  # change this if you use a different URI
+SCOPE = "user-read-private user-read-playback-state" # keep this unchanged
+```
+
+5. Save the file and run the application again.
+
+On the first launch, you will be redirected to the browser to authorize your Spotify account.
+The access token will be cached locally, so you won’t need to repeat this step every time.
+
+### Notes
+- Do not use the author's Client ID for production builds or redistributed versions of this application.
+- Each developer should use their own Spotify application credentials to avoid API limits and unexpected issues.
+- Never commit any client secrets or private tokens to a public repository.
+
+
 ## Troubleshooting
 - No Song Info: Ensure Spotify is playing and you're online. Check console for API errors.
 - Window Not Transparent/Draggable: Windows-specific (uses ctypes). On other OS, may need adjustments.
 - Auth Fails: Check CLIENT_ID in spotify.py. Clear .cache file if issues.
 - Freezing on drag: Fixed in recent versions using threaded updates (start_update_loop).
 - Errors: Run in terminal for logs. Common: Missing libraries - reinstall deps.
+
 If issues persist, check console output or open an issue on GitHub.
 
 ## Preview

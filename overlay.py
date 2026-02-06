@@ -97,7 +97,6 @@ def apply_gradient_alpha(image: Image.Image, direction: str = "left_to_right") -
 def create_tray(app):
     image = Image.open(file_path("assets/app-icon.png")).resize((32, 32))
     show_hide_text = "Hide Overlay" if not app.hidden else "Show Overlay"
-    click_through_text = "Disable Click-Through" if app.click_through else "Enable Click-Through"
 
     global tray_icon
     tray_icon = pystray.Icon("spotify_overlay", image, "Spotify Overlay", menu=pystray.Menu(
@@ -146,13 +145,15 @@ COLOR_MUTED_TEXT = "#6E6E6E"
 # UIs Positions
 POS_BACKGROUND = {'relx': 0, 'rely': .5, 'x': 26, 'y': 0, 'relheight': 1, "anchor": "w"}
 POS_CLOSE_BUTTON = {'relx': 0, 'rely': 0, 'x': 2, 'y': 2, "anchor": "nw"}
-POS_SETTINGS_BUTTON = {'relx': 0, 'rely': 0.5, 'x': 2, 'y': 0, "anchor": "w"}
+POS_SETTINGS_BUTTON = {'relx': 0, 'rely': 1, 'x': 2, 'y': -28, "anchor": "sw"}
 POS_DRAG_BUTTON = {'relx': 0, 'rely': 1, 'x': 2, 'y': -2, "anchor": "sw"}
+POS_RESIZE_GRIP = {'relx': 1, 'rely': 1, 'x': 0, 'y': 0, "anchor": "se"}
+POS_BUTTONS_FRAME = {'relx': 1, 'rely': 1, 'x': -30, 'y': -2, "anchor": "se"}
 POS_TRACK_TITLE = {'relx': 0, 'rely': 0, 'x': 80, 'y': 3, "anchor": "nw"}
-POS_TRACK_ARTIST = {'relx': 0, 'rely': 0, 'x': 80, 'y': 25, "anchor": "nw"}
+POS_TRACK_ARTIST = {'relx': 0, 'rely': 0, 'x': 80, 'y': 28, "anchor": "nw"}
 POS_TRACK_IMAGE = {'relx': 0, 'rely': 0.5, 'x': 5, 'y': 0, "anchor": "w"}
 POS_TRACK_DURATION = {'relx': 0, 'rely': 1, 'x': 80, 'y': -1, "anchor": "sw"}
-POS_TRACK_DURATION_SLIDER = {'rely': 0.8, 'relx': 0.75, 'anchor': "ne"}
+POS_TRACK_DURATION_SLIDER = {'relx': 0, 'rely': 1, 'x': 180, 'y': -1, "anchor": "sw"}
 POS_PREV_TRACK_BUTTON = {'relx': 0, 'rely': .5, 'x': 0, 'y': 0, "anchor": "w"}
 POS_PAUSE_TRACK_BUTTON = {'relx': .5, 'rely': .5, 'x': 0, 'y': 0, "anchor": "center"}
 POS_NEXT_TRACK_BUTTON = {'relx': 1, 'rely': .5, 'x': 0, 'y': 0, "anchor": "e"}
@@ -208,19 +209,23 @@ class Overlay(ctk.CTk):
         self.attributes("-alpha", self.default_opacity)
         self.after(250, lambda: hide_from_taskbar(self))
         self.set_click_through(self.click_through)
+        self.MIN_WIDTH = 350
+        self.MIN_HEIGHT = 80
+        self.MAX_WIDTH = 750
+        self.MAX_HEIGHT = 230
 
         self.settings_openned = False
 
         self.track_total_duration = None
         self.current_image_url = None
+        self.current_image_size = 0
 
         self.can_update_song_info = True
         self.update_song_info_after_id = None
 
         # Create default album cover and default album cover with gradient
         self.default_album_cover = None
-        self.default_album_cover_gradient = None
-        default_album_cover_path = Path(file_path("assets/album-cover.jpeg"))
+        default_album_cover_path = Path(file_path("assets/album-cover.png"))
 
         if os.path.exists(default_album_cover_path):
             # Create a mask with rounded edges
@@ -236,9 +241,8 @@ class Overlay(ctk.CTk):
 
             # Applying all masks for default album cover
             self.default_album_cover = ctk.CTkImage(light_image=normal_image, size=(60, 60))
-            self.default_album_cover_gradient = ctk.CTkImage(light_image=gradient_image, size=(175, 175))
         else:
-            print("!: album-cover.jpeg not found")
+            print("!: album-cover.png not found")
 
         # --- Commands ---
         def on_slider_change(value):
@@ -250,9 +254,9 @@ class Overlay(ctk.CTk):
                 self.sp.seek_track(new_position_ms)
             except spotipy.exceptions.SpotifyException as e:
                 if "PREMIUM_REQUIRED" in str(e):
-                    print("Rewind is only available for Spotify Premium.")
+                    print("!: Rewind is only available for Spotify Premium.")
                 else:
-                    print("Another error when rewinding:", e)
+                    print("!: Another error when rewinding:", e)
 
         # ! --- UIs --- !
 
@@ -261,12 +265,12 @@ class Overlay(ctk.CTk):
         self.main_background.place(relx=0, rely=0, relwidth=1, relheight=1)
         
         # track info frame
-        self.background = ctk.CTkFrame(self, fg_color=COLOR_BACKGROUND, bg_color=COLOR_BACKGROUND, width=(self.winfo_width()-(26+4))) # or 26*2 for future
+        self.background = ctk.CTkFrame(self, fg_color="#2C2C2C", bg_color=COLOR_BACKGROUND)
         self.background.place(**POS_BACKGROUND)
         
         # frame for track buttons
-        self.buttons_frame = ctk.CTkFrame(self, fg_color=COLOR_BACKGROUND, bg_color=COLOR_BACKGROUND, width=85, height=25) # or 26*2 for future
-        self.buttons_frame.place(x=-2, y=-2, relx=1, rely=1, anchor="se")
+        self.buttons_frame = ctk.CTkFrame(self, fg_color=COLOR_BACKGROUND, bg_color=COLOR_BACKGROUND, width=85, height=25)
+        self.buttons_frame.place(**POS_BUTTONS_FRAME)
 
         # Control Panel For 3-rd size mode
         self.control_frame = ctk.CTkFrame(self.background, fg_color="#000000")
@@ -298,6 +302,15 @@ class Overlay(ctk.CTk):
                                         fg_color=COLOR_BACKGROUND, hover_color="#1A1A1A",
                                         command=self.open_settings)
         self.settings_button.place(**POS_SETTINGS_BUTTON)
+        
+        # resize grip
+        self.resize_grip = ctk.CTkLabel(self, text="↘", width=16, height=16, fg_color=COLOR_BACKGROUND, text_color="#FFFFFF")
+        self.resize_grip.place(**POS_RESIZE_GRIP)
+        self.resize_grip.configure(cursor="size_nw_se")
+        self.resize_grip.bind("<Button-1>", self._on_resize_start)
+        self.resize_grip.bind("<B1-Motion>", self._on_resizing)
+        self.resize_grip.bind("<ButtonRelease-1>", self._on_resize_end)
+        self.bind("<Configure>", self._on_configure)
 
         # track title
         self.track_title = ctk.CTkLabel(self.background, text="", font=ctk.CTkFont(size=18, weight="bold", family="Arial"),
@@ -305,7 +318,7 @@ class Overlay(ctk.CTk):
         self.track_title.place(**POS_TRACK_TITLE)
 
         # track artist
-        self.track_artist = ctk.CTkLabel(self.background, text="", font=ctk.CTkFont(size=14, family="Arial"),
+        self.track_artist = ctk.CTkLabel(self.background, text="", font=ctk.CTkFont(size=13, family="Arial"),
                                          text_color=COLOR_SECONDARY_TEXT)
         self.track_artist.place(**POS_TRACK_ARTIST)
 
@@ -361,6 +374,15 @@ class Overlay(ctk.CTk):
         self.monitor_mouse()
         self.start_update_loop()
         self.settings_toggle_click_through()
+        self.after(100, self.adjust_layout)
+    
+    
+    
+    def format_time(self, ms):
+        seconds = int(ms / 1000)
+        minutes = seconds // 60
+        seconds = seconds % 60
+        return f"{minutes}:{seconds:02d}"
     
     def set_click_through(window, enable: bool):
         GWL_EXSTYLE = -20
@@ -376,6 +398,20 @@ class Overlay(ctk.CTk):
             styles &= ~WS_EX_TRANSPARENT
 
         ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, styles)
+    
+    def settings_toggle_click_through(self):
+        if self.click_through:
+            self.close_button.place_forget()
+            self.settings_button.place_forget()
+            self.drag_button.place_forget()
+            self.background.configure(bg_color="transparent")
+            self.background.place_configure(relx=0, rely=.5, x=2, relheight=1, anchor="w")
+        else:
+            self.close_button.place(**POS_CLOSE_BUTTON)
+            self.settings_button.place(**POS_SETTINGS_BUTTON)
+            self.drag_button.place(**POS_DRAG_BUTTON)
+            self.background.configure(bg_color=COLOR_BACKGROUND)
+            self.background.place_configure(**POS_BACKGROUND)
 
     def start_update_loop(self):
         def background_loop():
@@ -388,12 +424,6 @@ class Overlay(ctk.CTk):
                 time.sleep(0.35)
 
         threading.Thread(target=background_loop, daemon=True).start()
-
-    def format_time(self, ms):
-        seconds = int(ms / 1000)
-        minutes = seconds // 60
-        seconds = seconds % 60
-        return f"{minutes}:{seconds:02d}"
 
     def update_song_info(self, current=None):
         if current is None:
@@ -417,83 +447,158 @@ class Overlay(ctk.CTk):
             track_duration = f"{self.format_time(progress_ms)} / {self.format_time(duration_ms)}"
 
             # updates all label
-            title_new = f"{shorterTitle}"
+            title_new = f"{title}"
             if self.track_title.cget("text") != title_new:
-                print("Update < track_title > to < shorterTitle >")
+                print("Update < track_title > to < title >")
                 self.track_title.configure(text=title_new)
 
             artist_new = f"{artist}"
             if self.track_artist.cget("text") != artist_new:
                 print("Update < track_artist > to < artist >")
                 self.track_artist.configure(text=artist_new)
-
-            if self.track_image.place_info() == {}:
-                print("cho")
-                self.track_image.place(**POS_TRACK_IMAGE)
-
+                
             self.track_duration.configure(text=track_duration)
 
             if self.pause_track_button.cget("text") != "||":
                 print("Update < pause_track_button > to '||'")
                 self.pause_track_button.configure(text="||", font=ctk.CTkFont(size=11, weight="bold"))
 
-
             # update slider
             if duration_ms > 0:
                 slider_value = (progress_ms / duration_ms) * 100
                 self.track_duration_slider.set(slider_value)
 
-            # get image
-            def update_album_cover(image_url):
-                if not image_url:
-                    if self.track_image.cget("image") is not self.default_album_cover and self.track_image.cget("image") is not self.default_album_cover_gradient or self.current_image_url == "idk123":
-                        print("Update < track_image > to default album cover < self.default_album_cover >")
-                        self.track_image.configure(image=self.default_album_cover)
-                        self.track_image.image = self.default_album_cover
-                        self.current_image_url = None
-                    return
-
-                if image_url == self.current_image_url:
-                    return  # same image, do nothing
-
-                if image_url != self.current_image_url:
-                    print("Update < track_image > to < image_url >")
-
-                    self.current_image_url = image_url
-
-                    response = requests.get(image_url, timeout=2)
-
-                    image_data = Image.open(BytesIO(response.content)).resize((70, 70)).convert("RGBA")
-
-                    mask = Image.new("L", (70, 70), 0)
-                    draw = ImageDraw.Draw(mask)
-                    draw.rounded_rectangle((0, 0, 70, 70), radius=10, fill=255)
-                    image_data.putalpha(mask)
-
-                    final_image = ctk.CTkImage(light_image=image_data, size=(70, 70))
-                    self.track_image.configure(image=final_image)
-                    self.track_image.image = final_image
-
-            update_album_cover(image_url)
+            cover_size = self._get_cover_size()
+            self.update_album_cover(image_url, cover_size)
 
         else:  # if nothing is playing right now
             if self.pause_track_button.cget("text") != "▶":
                 print("Update < pause_track_button > to '▶'")
                 self.pause_track_button.configure(text="▶", font=ctk.CTkFont(size=13))
+            
+            cover_size = self._get_cover_size()
+            self.update_album_cover(None, cover_size)
+    
+    # get image
+    def update_album_cover(self, image_url, image_size):
+        if not image_url:
+            if self.current_image_size != image_size or self.current_image_url is not None:
+                print("Update < track_image > to default album cover < self.default_album_cover >")
+                default_path = Path(file_path("assets/album-cover.png"))
+                if default_path.exists():
+                    img = Image.open(default_path).resize((image_size, image_size)).convert("RGBA")
+                    mask = Image.new("L", (image_size, image_size), 0)
+                    draw = ImageDraw.Draw(mask)
+                    draw.rounded_rectangle((0, 0, image_size, image_size), radius=10, fill=255)
+                    img.putalpha(mask)
+                    final_img = ctk.CTkImage(light_image=img, size=(image_size, image_size))
+                    self.track_image.configure(image=final_img)
+                    self.track_image.image = final_img
+                self.current_image_size = image_size
+                self.current_image_url = None
+            return
 
-    def settings_toggle_click_through(self):
-        if self.click_through:
-            self.close_button.place_forget()
-            self.settings_button.place_forget()
-            self.drag_button.place_forget()
-            self.background.configure(bg_color="transparent")
-            self.background.place_configure(relx=0, rely=.5, x=2, relheight=1, anchor="w")
+        if image_url == self.current_image_url and image_size == self.current_image_size:
+            return  # nothing has changed, do nothing.
+
+        print("Update < track_image > to < image_url >")
+
+        self.current_image_url = image_url
+        self.current_image_size = image_size
+
+        try:
+            response = requests.get(image_url, timeout=2)
+            response.raise_for_status()  # checking for errors
+            image_data = Image.open(BytesIO(response.content)).resize((image_size, image_size)).convert("RGBA")
+
+            mask = Image.new("L", (image_size, image_size), 0)
+            draw = ImageDraw.Draw(mask)
+            draw.rounded_rectangle((0, 0, image_size, image_size), radius=10, fill=255)
+            image_data.putalpha(mask)
+
+            final_image = ctk.CTkImage(light_image=image_data, size=(image_size, image_size))
+            self.track_image.configure(image=final_image)
+            self.track_image.image = final_image
+        except Exception as e:
+            print(f"Error loading image: {e}")
+            self.update_album_cover(None, image_size)
+    
+    def adjust_layout(self):
+        w = self.winfo_width()
+        h = self.winfo_height()
+
+        cover_size = self._get_cover_size() # calculating the cover size
+
+        background_width = w - 30
+        self.background.configure(width=background_width)
+        self.background.place_configure(width=background_width)
+        
+        labels_x = cover_size + 15
+        
+        self.track_title.place_configure(x=labels_x)
+        self.track_artist.place_configure(x=labels_x)
+        self.track_duration.place_configure(x=labels_x)
+
+        # update cover if there is a URL
+        cover_size = self._get_cover_size()
+        if self.current_image_url:
+            self.update_album_cover(self.current_image_url, cover_size)
         else:
-            self.close_button.place(**POS_CLOSE_BUTTON)
-            self.settings_button.place(**POS_SETTINGS_BUTTON)
-            self.drag_button.place(**POS_DRAG_BUTTON)
-            self.background.configure(bg_color=COLOR_BACKGROUND)
-            self.background.place_configure(**POS_BACKGROUND)
+            self.update_album_cover(None, cover_size)
+
+        # Логика для слайдера (твоя оригинальная)
+        if w < 420:
+            try:
+                self.track_duration_slider.place_forget()
+            except Exception:
+                pass
+        else:
+            try:
+                self.track_duration_slider.place(**POS_TRACK_DURATION_SLIDER)
+            except Exception:
+                pass
+
+    def _on_resize_start(self, event):
+        self._resizing = True
+        self._resize_start_x = self.winfo_pointerx()
+        self._resize_start_y = self.winfo_pointery()
+        self._resize_start_w = self.winfo_width()
+        self._resize_start_h = self.winfo_height()
+
+    def _on_resizing(self, event):
+        if not self._resizing:
+            return
+        # compute delta from start pointer
+        dx = self.winfo_pointerx() - self._resize_start_x
+        dy = self.winfo_pointery() - self._resize_start_y
+
+        new_w = max(self.MIN_WIDTH, min(self.MAX_WIDTH, int(self._resize_start_w + dx)))
+        new_h = max(self.MIN_HEIGHT, min(self.MAX_HEIGHT, int(self._resize_start_h + dy)))
+
+        # set new geometry but keep current x,y (position)
+        # get current position
+        geo = self.geometry().split("+")
+        if len(geo) >= 3:
+            # geometry like "WxH+X+Y"
+            pos_x = int(geo[1])
+            pos_y = int(geo[2])
+            self.geometry(f"{new_w}x{new_h}+{pos_x}+{pos_y}")
+        else:
+            self.geometry(f"{new_w}x{new_h}")
+
+        self.after(50, self.adjust_layout)
+
+    def _on_resize_end(self, event):
+        self._resizing = False
+        self.adjust_layout()
+
+    def _on_configure(self, event):
+        self.adjust_layout()
+    
+    def _get_cover_size(self):
+        h = self.winfo_height()
+        size = h - 10
+        return max(60, min(250, size))
 
     def create_tray(self):
         create_tray(self) # very important for tray (used in main.py)

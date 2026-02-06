@@ -11,8 +11,14 @@ from spotipy.oauth2 import SpotifyPKCE
 from utils import file_path, get_data_path
 
 # Constants
-CLIENT_ID = "a1b19019bc5f4e0c916ad8b243f1e2f5"        # this is my client_id from my spotify app. to get your own client_id for your app, create an app at https://developer.spotify.com/dashboard
-REDIRECT_URI = "http://127.0.0.1:8888/callback"  # set your URI from your spotify app for your app.
+
+# NOTE:
+# this Client ID belongs to the original author of the project.
+# if you are using this repository as a base for your own application,
+# please create your own Spotify app on https://developer.spotify.com/dashboard and replace CLIENT_ID and REDIRECT_URI.
+
+CLIENT_ID = "a1b19019bc5f4e0c916ad8b243f1e2f5" # Do NOT use this Client ID for production or redistributed builds.
+REDIRECT_URI = "http://127.0.0.1:8888/callback"
 SCOPE = "user-read-private user-read-playback-state"
 
 auth_code = None  # intermediate variable for storing code
