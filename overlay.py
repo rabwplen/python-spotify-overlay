@@ -265,7 +265,7 @@ class Overlay(ctk.CTk):
         self.main_background.place(relx=0, rely=0, relwidth=1, relheight=1)
         
         # track info frame
-        self.background = ctk.CTkFrame(self, fg_color="#2C2C2C", bg_color=COLOR_BACKGROUND)
+        self.background = ctk.CTkFrame(self, fg_color=COLOR_BACKGROUND, bg_color=COLOR_BACKGROUND)
         self.background.place(**POS_BACKGROUND)
         
         # frame for track buttons
