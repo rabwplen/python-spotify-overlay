@@ -141,5 +141,5 @@ class SettingsWindow(ctk.CTkToplevel):
             else:  # linux
                 subprocess.run(["xdg-open", path])
             
-        click_through_switch = ctk.CTkButton(self, text="Open config.json folder", command=open_config_folder)
-        click_through_switch.place(y=220, x=8)
+        open_folder_button = ctk.CTkButton(self, text="Open config.json folder", command=open_config_folder)
+        open_folder_button.place(y=220, x=8)
