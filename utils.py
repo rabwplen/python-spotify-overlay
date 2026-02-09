@@ -1,6 +1,8 @@
 import os
 import sys
 import json
+import ctypes
+import keyboard
 
 def file_path(relative_path):
     try:
@@ -38,3 +40,20 @@ def save_settings(data):
     print("Settings saved.")
     with open(get_data_path("settings.json"), "w") as f:
         json.dump(data, f, indent=4)
+
+def hide_from_taskbar(window):
+    GWL_EXSTYLE = -20
+    WS_EX_TOOLWINDOW = 0x00000080
+    WS_EX_APPWINDOW = 0x00040000
+
+    hwnd = ctypes.windll.user32.GetParent(window.winfo_id())
+    ex_style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+    ex_style = ex_style & ~WS_EX_APPWINDOW | WS_EX_TOOLWINDOW
+    ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, ex_style)
+    ctypes.windll.user32.ShowWindow(hwnd, 5)
+    ctypes.windll.user32.SetWindowPos(hwnd, None, 0, 0, 0, 0,
+                                      0x0001 | 0x0002 | 0x0020 | 0x0040)
+
+def previous_track(): keyboard.send("previous track")
+def resume_pause_track(): keyboard.send("play/pause")
+def next_track(): keyboard.send("next track")

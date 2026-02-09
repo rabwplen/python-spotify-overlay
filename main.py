@@ -1,7 +1,6 @@
-import sys
 import os
+import sys
 import threading
-from pathlib import Path
 
 import customtkinter as ctk
 
