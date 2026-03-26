@@ -6,7 +6,7 @@ Displays current track title, artist, album cover, and basic controls in a minim
 
 ## ⚠️ Very Important Notice
 
-Due to recent Spotify API changes, this application requires the app owner to have a Spotify Premium subscription.
+Due to [recent Spotify API](https://developer.spotify.com/documentation/web-api/tutorials/february-2026-migration-guide) changes, this application requires the app owner to have a Spotify Premium subscription.
 
 The app won't work without the premium version, and I can't afford the premium version.
 So the project has probably failed, but I'll try to create a new app based on this one without Spotify, but using Windows GlobalSystemMediaTransportControlsSessionManager instead, i guess.
