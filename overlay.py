@@ -21,7 +21,17 @@ from io import BytesIO
 
 import spotipy
 
-from utils import *
+from utils import (
+    file_path,
+    get_data_path,
+    get_data_dir,
+    load_settings,
+    save_settings,
+    hide_from_taskbar,
+    previous_track,
+    resume_pause_track,
+    next_track,
+)
 from settings import SettingsWindow
 
 

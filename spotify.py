@@ -78,7 +78,7 @@ def setup_spotify():
     sp = spotipy.Spotify(auth_manager=auth_manager)
     try:
         print("-< Authorized as:", sp.current_user()['display_name'], ">-")
-    except:
+    except Exception:
         print("-< You are offline >-")
     
     return sp # return the sp object
