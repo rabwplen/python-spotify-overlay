@@ -66,7 +66,6 @@ def create_tray(app):
     image = Image.open(file_path("assets/app-icon.png")).resize((32, 32))
     show_hide_text = "Hide Overlay" if not app.hidden else "Show Overlay"
 
-    global tray_icon
     tray_icon = pystray.Icon("spotify_overlay", image, "Spotify Overlay", menu=pystray.Menu(
         pystray.MenuItem(show_hide_text, lambda: tray_on_show_or_hide(app)),
         pystray.MenuItem("Open Settings", app.open_settings),
@@ -75,7 +74,6 @@ def create_tray(app):
     tray_icon.run()
 
 def update_tray_menu(app):
-    global tray_icon
     if tray_icon is None:
         return  # tray_icon not created yet
 
