@@ -1,6 +1,6 @@
-spotipy==2.26.0
+spotipy==2.23.0
 customtkinter==5.2.2
 pystray==0.19.5
 pillow==10.2.0
-requests==2.32.5
-keyboard
+requests==2.31.0
+keyboard==0.13.5
