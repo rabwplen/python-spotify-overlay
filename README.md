@@ -1,7 +1,17 @@
-# Python Spotify Overlay
+# [OUTDATED] :(
+# Python Spotify Overlay *(not working due to new spotify restrictions)*
 
 Lightweight desktop overlay for Spotify built with Python and CustomTkinter.
 Displays current track title, artist, album cover, and basic controls in a minimal floating window.
+
+## ⚠️ Very Important Notice
+
+Due to recent Spotify API changes, this application requires the app owner to have a Spotify Premium subscription.
+
+The app won't work without the premium version, and I can't afford the premium version.
+So the project has probably failed, but I'll try to create a new app based on this one without Spotify, but using Windows GlobalSystemMediaTransportControlsSessionManager instead, i guess.
+
+---
 
 ## Overview
 
