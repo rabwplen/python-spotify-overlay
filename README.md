@@ -1,131 +1,170 @@
 # Python Spotify Overlay
 
-A lightweight, customizable Spotify overlay that displays the current track, artist, album artwork and playback controls on top of your screen.
+Lightweight desktop overlay for Spotify built with Python and CustomTkinter.
+Displays current track title, artist, album cover, and basic controls in a minimal floating window.
+
+## Overview
+
+This project creates a small, always-on-top overlay that shows what you're currently listening to on Spotify.
+
+Designed to be:
+
+- simple
+- visually clean
+- low overhead
+
+Unlike full clients, this is just an overlay, not a replacement for Spotify.
 
 
 ## Features
-- Real-time track info (title, artist, duration, cover)
-- Play/Pause, Previous, Next buttons
-- Adjustable opacity, fade effects
-- Always-on-top, draggable, click-through mode
-- Settings window & system tray menu
-- Spotify login via browser
 
+- Track title and artist display
+- Album cover preview
+- Play / Pause button
+- Window dragging
+- Adjustable transparency
+- Fade-in / fade-out animations
+- Settings saved in JSON
 
-## Requirements
-- Python 3.8+
-- Libraries: `spotipy`, `customtkinter`, `pystray`, `pillow`, `requests`, `keyboard`
+---
 
-```bash
-pip install spotipy customtkinter pystray pillow requests keyboard
-```
+## Screenshots
 
+![Overlay Preview](assets/preview.png)
+
+---
 
 ## Installation
 1. Clone or download the project
-2. Install dependencies (see above)
-3. Make sure the project structure looks like this:
-```text
-python-spotify-overlay/
-├─ assets/
-│  ├─ album-cover.png
-│  ├─ app-icon.ico
-│  ├─ app-icon.png
-│  ├─ close-icon.png
-│  ├─ drag-icon.png
-│  └─ settings-icon.png
-├─ auth_success.html
-├─ main.py
-├─ overlay.py
-├─ settings.py
-├─ spotify.py
-└─ utils.py
+2. Install dependencies (see below)
+
+For example:
+```bash
+git clone https://github.com/rabwplen/python-spotify-overlay
+cd python-spotify-overlay
+pip install -r requirements.txt
 ```
 
 
-## Quick Start
+## Requirements
+
+- Python 3.10 or newer
+- Spotify account
+
+Dependencies are listed in `requirements.txt`.
+
+---
+
+## Running the app
 
 ```bash
 python main.py
 ```
 
-What happens on first launch:
-1. The browser will open for Spotify authorization
-2. The overlay appears → you can drag it, open settings, or use the tray icon
-3. Tray menu: Hide/Show, Settings, Close
+On first run, your browser will open for Spotify authentication.
+After login, the overlay will start automatically.
 
-That’s it. After the first authorization, the app will reuse the cached token and won’t ask you again unless it expires.
+---
 
+## Project structure
+
+```
+.
+├── assets/             # icons and images used by the overlay
+├── main.py             # Entry point
+├── overlay.py          # GUI logic (window, animations, controls)
+├── spotify.py          # Spotify authentication and API interaction
+├── settings.py         # Default settings
+├── utils.py            # File paths, config handling
+├── test_basic.py       # Basic tests
+├── requirements.txt
+```
+
+---
 
 ## Settings
-- Opacity (normal & hover)
-- Fade delay & duration
-- Always on top / Draggable / Click-through
-- Changes are saved automatically
 
+Settings are stored automatically in a JSON file.
 
-## Configuration Files
-- settings.json: Stores user preferences (opacity, positions, etc.). Located in app data folder (e.g., %APPDATA%\rwp-PythonSpotifyOverlay on Windows).
-- .cache: Spotify token cache (in the same folder).
+Depending on your OS:
 
-Delete these files to reset to defaults.
+- Windows → `%APPDATA%`
+- Linux → `~/.config`
 
+Example settings:
 
-## Spotify API Setup (for forks & custom builds)
+```json
+{
+    "default_opacity": 0.6,
+    "hover_opacity": 0.8,
+    "fade_delay": 1,
+    "fade_duration": 0.2,
+    "always_on_top": true,
+    "can_drag": true,
+    "click_through": false
+}
+```
 
-This project includes the author's Spotify **Client ID** by default, so you can run the overlay out of the box.
-If you plan to use this repository as a base for your own project or distribute modified builds, you should register your own Spotify application and provide your own credentials.
+---
 
-### Quick start (use as-is)
+## Limitations
 
-1. Clone the repository.
-2. Run the app.
+- Performance issues may occur on some systems (especially due to frequent UI updates and animations)
+- Limited control over Spotify (especially for free accounts)
+- Requires internet connection
+- GUI behavior may vary slightly across OS
+- Sometimes it runs slowly because it's in Python
+
+---
+
+## Development
+
+### Run tests
 
 ```bash
-python main.py
+pytest
 ```
 
-3. On the first launch, your browser will open to authorize access to Spotify.
+### Lint
 
-No additional setup is required if you only want to try the overlay.
-
-### Custom setup (recommended for developers)
-
-If you are building your own version of this project, follow these steps:
-
-1. Go to https://developer.spotify.com/dashboard.
-2. Log in and click Create an app.
-3. Open your app settings:
-    - Copy your Client ID
-    - Add a Redirect URI (for example): `http://127.0.0.1:8888/callback`
-4. Open `spotify.py` and replace the values:
-
-```python
-CLIENT_ID = "YOUR_CLIENT_ID_HERE"
-REDIRECT_URI = "http://127.0.0.1:8888/callback"  # change this if you use a different URI
-SCOPE = "user-read-private user-read-playback-state" # keep this unchanged
+```bash
+flake8 .
 ```
 
-5. Save the file and run the application again.
+---
 
-On the first launch, you will be redirected to the browser to authorize your Spotify account.
-The access token will be cached locally, so you won’t need to repeat this step every time.
+## CI
 
-### Notes
-- Do not use the author's Client ID for production builds or redistributed versions of this application.
-- Each developer should use their own Spotify application credentials to avoid API limits and unexpected issues.
-- Never commit any client secrets or private tokens to a public repository.
+GitHub Actions is used to:
 
+- run tests
+- check code style (flake8)
 
-## Troubleshooting
-- No Song Info: Ensure Spotify is playing and you're online. Check console for API errors.
-- Window Not Transparent/Draggable: Windows-specific (uses ctypes). On other OS, may need adjustments.
-- Auth Fails: Check CLIENT_ID in spotify.py. Clear .cache file if issues.
-- Freezing on drag: Fixed in recent versions using threaded updates (start_update_loop).
-- Errors: Run in terminal for logs. Common: Missing libraries - reinstall deps.
+---
 
-If issues persist, check console output or open an issue on GitHub.
+## Future improvements
 
-## Preview
+- Improve animation performance and reduce CPU usage
+- Optimize UI updates (avoid unnecessary redraws)
+- Cache album covers to reduce network load
+- Windows-specific optimizations
+- Add configurable update interval
+- Move heavy operations to background threads
+- Reduce polling frequency for Spotify API
+- More playback controls
+- Custom themes and UI customization
+- Possible future rewrite using C# WinUI (separate project)
 
-![Overlay Preview](assets/preview.png)
+---
+
+## Contributing
+
+Pull requests are welcome.
+
+If you plan major changes, open an issue first.
+
+---
+
+## License
+
+MIT License
