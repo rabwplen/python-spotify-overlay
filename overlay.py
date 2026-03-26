@@ -222,19 +222,7 @@ class Overlay(ctk.CTk):
         self.current_window_w = 0
         self.current_window_h = 0
 
-        # --- Commands ---
-        def on_slider_change(value):
-            new_position_ms = int((value / 100) * self.track_total_duration)
 
-            self.track_duration.configure(text=f"{self.format_time(new_position_ms)} / {self.format_time(self.track_total_duration)}")
-
-            try:
-                self.sp.seek_track(new_position_ms)
-            except spotipy.exceptions.SpotifyException as e:
-                if "PREMIUM_REQUIRED" in str(e):
-                    print("!: Rewind is only available for Spotify Premium.")
-                else:
-                    print("!: Another error when rewinding:", e)
 
         # ! --- UIs --- !
 
@@ -359,7 +347,7 @@ class Overlay(ctk.CTk):
         self.next_track_button_cp.place(**POS_NEXT_TRACK_BUTTON_CP)
         
         # track duration slider
-        self.track_duration_slider = ctk.CTkSlider(self.control_panel_frame, from_=0, to=100, state="disabled", command=on_slider_change,
+        self.track_duration_slider = ctk.CTkSlider(self.control_panel_frame, from_=0, to=100, state="disabled",
                                                            width=(self.winfo_width()), height=10,
                                                            bg_color=COLOR_CONTROL_PANEL, fg_color="#4d4d4d", progress_color="#FFFFFF",
                                                            button_color="#FFFFFF", button_hover_color="#4d4d4d")
@@ -436,7 +424,12 @@ class Overlay(ctk.CTk):
                     current = self.sp.current_playback()
                     self.after(0, lambda: self.update_song_info(current))
                 except Exception as e:
-                    print(f"Update error: {e}")
+                    if "403" in str(e) or "premium" in str(e).lower():
+                        print("Spotify Premium required for the developer account.")
+                        time.sleep(10)
+                    else:
+                        print(f"Update error: {e}")
+                        # return
                 time.sleep(0.35)
 
         threading.Thread(target=background_loop, daemon=True).start()
@@ -445,8 +438,11 @@ class Overlay(ctk.CTk):
         if current is None:
             try:
                 current = self.sp.current_playback()
-            except:
-                print("what?")
+            except Exception as e:
+                if "403" in str(e) or "premium" in str(e).lower():
+                    print("Spotify Premium required.")
+                else:
+                    print("Update error in update_song_info():", e)
                 return
 
         if current and current["is_playing"]:
