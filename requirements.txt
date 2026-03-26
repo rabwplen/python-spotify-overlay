@@ -1,0 +1,6 @@
+spotipy==2.26.0
+customtkinter==5.2.2
+pystray==0.19.5
+pillow==12.1.1
+requests==2.33.0
+keyboard
